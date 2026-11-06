@@ -14,7 +14,7 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.appopen.AppOpenAd
 import java.util.Date
 
-class MeuBebeApp : Application(), Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
+class MeuBebeApp : Application(), Application.ActivityLifecycleCallbacks {
 
     private var appOpenAdManager: AppOpenAdManager? = null
     private var currentActivity: Activity? = null
@@ -23,19 +23,19 @@ class MeuBebeApp : Application(), Application.ActivityLifecycleCallbacks, Defaul
         super.onCreate()
         registerActivityLifecycleCallbacks(this)
 
-        // Inicializa o AdMob em background
+        // Inicializa o AdMob
         MobileAds.initialize(this) {}
 
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         appOpenAdManager = AppOpenAdManager()
-    }
 
-    override fun onStart(owner: LifecycleOwner) {
-        super.onStart(owner)
-        // Mostra o anúncio quando o app volta para o primeiro plano
-        currentActivity?.let { activity ->
-            appOpenAdManager?.showAdIfAvailable(activity)
-        }
+        // Observa o ciclo de vida do app para disparar ao abrir
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                currentActivity?.let { activity ->
+                    appOpenAdManager?.showAdIfAvailable(activity)
+                }
+            }
+        })
     }
 
     override fun onActivityStarted(activity: Activity) {
@@ -53,7 +53,7 @@ class MeuBebeApp : Application(), Application.ActivityLifecycleCallbacks, Defaul
     override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
 
     /**
-     * Gerenciador interno do App Open Ad
+     * Gerenciador do App Open Ad
      */
     private inner class AppOpenAdManager {
         private val adUnitId = "ca-app-pub-3016178863457047/8931527209"
@@ -76,7 +76,6 @@ class MeuBebeApp : Application(), Application.ActivityLifecycleCallbacks, Defaul
                         appOpenAd = ad
                         isLoadingAd = false
                         loadTime = Date().time
-                        // Se for a primeira inicialização com tela ativa, exibe de imediato
                         currentActivity?.let { showAdIfAvailable(it) }
                     }
 
@@ -111,7 +110,7 @@ class MeuBebeApp : Application(), Application.ActivityLifecycleCallbacks, Defaul
                 override fun onAdDismissedFullScreenContent() {
                     appOpenAd = null
                     isShowingAd = false
-                    loadAd() // Prepara o próximo anúncio
+                    loadAd()
                 }
 
                 override fun onAdFailedToShowFullScreenContent(adError: AdError) {
