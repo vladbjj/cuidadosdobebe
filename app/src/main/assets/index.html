@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meu Bebê</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:#fff8f2;color:#3d2b1f;padding-bottom:60px;
+  }
+  header{
+    background:linear-gradient(135deg,#ff8a5b,#ffb26b);
+    color:#fff;padding:30px 20px 26px;text-align:center;
+    border-radius:0 0 28px 28px;box-shadow:0 6px 20px rgba(255,138,91,.25);
+  }
+  header h1{font-size:1.7rem;letter-spacing:-.5px}
+  header p{opacity:.92;font-size:.9rem;margin-top:6px}
+
+  .toolbar{
+    position:sticky;top:0;z-index:50;background:#fff8f2;
+    padding:14px 16px 10px;max-width:1100px;margin:0 auto;
+    backdrop-filter:blur(8px);
+  }
+  .tabs{display:flex;gap:8px;margin-bottom:12px}
+  .tab{
+    flex:1;padding:12px 6px;border:none;border-radius:14px;cursor:pointer;
+    background:#fff;color:#8a7161;font-size:.85rem;font-weight:600;
+    box-shadow:0 2px 8px rgba(0,0,0,.06);transition:.2s;
+  }
+  .tab.active{background:linear-gradient(135deg,#ff8a5b,#ffb26b);color:#fff;box-shadow:0 4px 14px rgba(255,138,91,.35)}
+
+  #busca{
+    width:100%;padding:13px 16px;border-radius:14px;border:2px solid #ffe3d0;
+    background:#fff;font-size:.95rem;outline:none;transition:.2s;
+  }
+  #busca:focus{border-color:#ff8a5b}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{
+    white-space:nowrap;padding:7px 15px;border-radius:20px;border:2px solid #ffe3d0;
+    background:#fff;color:#8a7161;font-size:.82rem;font-weight:600;cursor:pointer;transition:.2s;
+  }
+  .chip.active{background:#7fb069;border-color:#7fb069;color:#fff}
+
+  .progress{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .bar{flex:1;height:9px;background:#ffe3d0;border-radius:10px;overflow:hidden}
+  .bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,#7fb069,#a8d08d);border-radius:10px;transition:width .4s}
+  .progress small{font-size:.78rem;color:#8a7161;font-weight:600;white-space:nowrap}
+
+  main{max-width:1100px;margin:0 auto;padding:6px 16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+
+  .card{
+    background:#fff;border-radius:18px;padding:16px;cursor:pointer;
+    box-shadow:0 3px 12px rgba(61,43,31,.07);transition:.22s;
+    position:relative;border:2px solid transparent;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(61,43,31,.13);border-color:#ffe3d0}
+  .card .emoji{font-size:2rem;line-height:1}
+  .card h3{font-size:.98rem;margin:10px 0 8px;line-height:1.3;min-height:2.6em}
+  .card .idade{
+    display:inline-block;font-size:.7rem;font-weight:700;padding:4px 11px;
+    border-radius:20px;background:#eef7e8;color:#5c8a45;
+  }
+  .card .ok{
+    position:absolute;top:12px;right:12px;width:24px;height:24px;border-radius:50%;
+    background:#7fb069;color:#fff;font-size:.75rem;display:none;
+    align-items:center;justify-content:center;font-weight:700;
+  }
+  .card.feita .ok{display:flex}
+  .card.feita{background:#f6fbf3}
+
+  .vazio{grid-column:1/-1;text-align:center;padding:50px 20px;color:#b09a8a}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(61,43,31,.5);backdrop-filter:blur(4px);
+    display:none;align-items:flex-end;justify-content:center;z-index:100;
+  }
+  .overlay.show{display:flex}
+  .modal{
+    background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;
+    border-radius:26px 26px 0 0;padding:26px 22px 34px;position:relative;
+    animation:subir .28s ease;
+  }
+  @keyframes subir{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @media(min-width:640px){
+    .overlay{align-items:center}
+    .modal{border-radius:26px;max-height:86vh}
+  }
+  .close{
+    position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;
+    border:none;background:#fff2e8;color:#ff8a5b;font-size:1rem;cursor:pointer;font-weight:700;
+  }
+  .modal-emoji{font-size:3rem;text-align:center;margin-bottom:6px}
+  .modal h2{font-size:1.25rem;text-align:center;line-height:1.3}
+  .modal .idade{display:block;width:fit-content;margin:10px auto 20px;font-size:.75rem;font-weight:700;
+    padding:5px 14px;border-radius:20px;background:#eef7e8;color:#5c8a45}
+  .modal h3{font-size:.78rem;margin:20px 0 10px;color:#ff8a5b;
+    text-transform:uppercase;letter-spacing:.5px}
+  .modal ul,.modal ol{padding-left:20px}
+  .modal li{margin-bottom:8px;font-size:.93rem;line-height:1.5}
+  .modal ol li::marker{color:#ff8a5b;font-weight:700}
+  .dica{
+    background:linear-gradient(135deg,#fff8e6,#fff3d6);border-left:4px solid #ffc857;
+    border-radius:12px;padding:14px 16px;margin-top:22px;
+  }
+  .dica strong{color:#c9932b;font-size:.82rem;display:block;margin-bottom:6px}
+  .dica p{font-size:.9rem;line-height:1.5;color:#6b5436}
+
+  /* ---- Histórias ---- */
+  .historia-texto{font-size:.95rem;line-height:1.75;color:#4a3a2e;text-align:justify}
+  .historia-texto p{margin-bottom:14px}
+  .moral-box{
+    background:linear-gradient(135deg,#eef7e8,#e0f0d8);border-left:4px solid #7fb069;
+    border-radius:12px;padding:14px 16px;margin-top:18px;
+  }
+  .moral-box strong{color:#5c8a45;font-size:.82rem;display:block;margin-bottom:6px}
+  .moral-box p{font-size:.92rem;line-height:1.5;color:#3d5a2c;font-weight:500}
+
+  .audio-box{
+    background:#f7f4ff;border-radius:16px;padding:16px;margin-top:18px;
+    border:2px solid #e8e0ff;
+  }
+  .audio-status{
+    font-size:.82rem;font-weight:600;color:#7a6ba8;margin-bottom:12px;text-align:center;
+  }
+  .audio-status.tocando{color:#5c8a45;animation:pulsar 1.5s ease-in-out infinite}
+  .audio-status.pausado{color:#c9932b}
+  @keyframes pulsar{0%,100%{opacity:1}50%{opacity:.45}}
+  .audio-btns{display:flex;gap:10px}
+  .btn-audio{
+    flex:2;padding:14px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,#9b7fd4,#b8a0e8);color:#fff;
+    font-size:.9rem;font-weight:700;transition:.2s;
+  }
+  .btn-audio:active{transform:scale(.98)}
+  .btn-audio:disabled{opacity:.55;cursor:not-allowed}
+  .btn-audio-stop{
+    flex:1;padding:14px;border-radius:12px;border:2px solid #e8e0ff;cursor:pointer;
+    background:#fff;color:#7a6ba8;font-size:1rem;font-weight:700;transition:.2s;
+  }
+  .btn-audio-stop:active{transform:scale(.98)}
+
+  .btn-feita{
+    width:100%;margin-top:22px;padding:15px;border-radius:14px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,#ff8a5b,#ffb26b);color:#fff;font-size:.95rem;font-weight:700;
+    transition:.2s;
+  }
+  .btn-feita.on{background:linear-gradient(135deg,#7fb069,#a8d08d)}
+  .btn-feita:active{transform:scale(.98)}
+
+  footer{text-align:center;font-size:.78rem;color:#b09a8a;padding:34px 24px 0;line-height:1.6;max-width:720px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍼 Meu Bebê</h1>
+  <p>45 papinhas · 45 sucos · 45 histórias com áudio</p>
+</header>
+
+<div class="toolbar">
+  <div class="tabs">
+    <button class="tab active" data-tab="papinhas">🥣 Papinhas</button>
+    <button class="tab" data-tab="sucos">🥤 Sucos</button>
+    <button class="tab" data-tab="historias">📖 Histórias</button>
+  </div>
+  <input id="busca" type="search" placeholder="🔍 Buscar...">
+  <div class="chips" id="chips"></div>
+  <div class="progress">
+    <div class="bar"><span id="barra"></span></div>
+    <small id="progressoTxt"></small>
+  </div>
+</div>
+
+<main><div class="grid" id="grid"></div></main>
+
+<footer>
+  ⚠️ Conteúdo informativo. Ofereça sucos em copo aberto, nunca na mamadeira, e sem açúcar.<br>
+  🎧 As histórias são narradas pela voz do seu dispositivo (Web Speech API).<br>
+  Consulte sempre o pediatra ou nutricionista do seu bebê.
+</footer>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <button class="close" id="fechar">✕</button>
+    <div id="modalConteudo"></div>
+  </div>
+</div>
+
+<script>
+/* ================= DADOS: 45 PAPINHAS ================= */
+const PAPINHAS = [
+{n:"Banana com Aveia",e:"🍌",idade:"6m+",ing:["1 banana madura","2 colheres (sopa) de aveia em flocos finos","100 ml de água filtrada"],pas:["Amasse a banana com um garfo até formar um purê bem lisinho.","Cozinhe a aveia com a água em fogo baixo por 3 a 4 minutos, mexendo sempre.","Misture a banana ao creme de aveia ainda morno e sirva."],d:"A banana já é naturalmente doce — não adicione açúcar. Se sobrar, congele em forminhas de gelo por até 30 dias."},
+{n:"Maçã Cozida",e:"🍎",idade:"6m+",ing:["1 maçã sem casca e sem sementes","100 ml de água filtrada"],pas:["Corte a maçã em cubinhos.","Cozinhe no vapor por 8 a 10 minutos até ficar bem macia.","Bata no mixer ou amasse com garfo até virar purê."],d:"Cozinhar no vapor preserva mais vitaminas do que ferver. Ofereça morna, nunca quente."},
+{n:"Pera Cozida",e:"🍐",idade:"6m+",ing:["1 pera madura sem casca","80 ml de água"],pas:["Pique a pera em cubos.","Cozinhe no vapor por 7 minutos.","Amasse ou bata até a consistência de purê."],d:"Prefira peras maduras — ficam mais doces e mais fáceis de amassar."},
+{n:"Mamão Amassado",e:"🍈",idade:"6m+",ing:["1 fatia grossa de mamão maduro"],pas:["Retire as sementes e a casca.","Amasse bem com um garfo.","Sirva na hora, sem precisar cozinhar."],d:"O mamão ajuda no intestino preso. Sirva logo após amassar para não escurecer."},
+{n:"Abacate Cremoso",e:"🥑",idade:"6m+",ing:["1/2 abacate maduro"],pas:["Retire a polpa com uma colher.","Amasse com garfo até ficar bem cremoso.","Se quiser, misture um pouco de leite materno ou fórmula."],d:"O abacate é rico em gorduras boas, essenciais para o desenvolvimento do cérebro do bebê."},
+{n:"Batata-doce com Cenoura",e:"🍠",idade:"6m+",ing:["1 batata-doce pequena","1/2 cenoura","Água para cozinhar"],pas:["Descasque e corte os legumes em cubos.","Cozinhe no vapor por 12 a 15 minutos.","Amasse tudo com garfo ou mixer, adicionando água do cozimento."],d:"Quanto mais colorido o prato, mais nutrientes. Varie as cores dos legumes a cada dia."},
+{n:"Abóbora com Frango",e:"🎃",idade:"6m+",ing:["200 g de abóbora cabotiá","1 filé pequeno de frango","1/2 cebola picada"],pas:["Cozinhe o frango com a cebola em água até ficar bem macio.","Junte a abóbora e cozinhe por mais 10 minutos.","Desfie o frango bem fino, amasse a abóbora e misture."],d:"Use sempre carne fresca e cozinhe até não sobrar nenhum ponto rosado."},
+{n:"Mandioquinha com Carne",e:"🥔",idade:"6m+",ing:["2 mandioquinhas","80 g de patinho moído","1/2 cebola picada"],pas:["Refogue a carne com a cebola em um fio de azeite.","Cozinhe a mandioquinha até ficar bem macia.","Amasse a mandioquinha, misture a carne e ajuste com o caldo."],d:"A mandioquinha (batata-baroa) é rica em ferro e muito fácil de digerir."},
+{n:"Arroz com Feijão",e:"🍚",idade:"6m+",ing:["2 colheres (sopa) de arroz cozido","1 colher (sopa) de feijão cozido sem caldo","1 cenoura pequena"],pas:["Cozinhe a cenoura até ficar bem macia.","Amasse o arroz, o feijão e a cenoura juntos.","Se precisar, adicione um pouco do caldo do feijão."],d:"Retire a casca do feijão para os bebês menores — amasse e passe pela peneira."},
+{n:"Brócolis com Batata",e:"🥦",idade:"6m+",ing:["3 floretes de brócolis","1 batata média","Água para cozinhar"],pas:["Cozinhe o brócolis e a batata no vapor por 12 minutos.","Amasse tudo muito bem.","Sirva morno."],d:"Cozinhe o brócolis até ficar bem macio — ele é um dos legumes que mais causa engasgo quando duro."},
+{n:"Cenoura com Batata",e:"🥕",idade:"6m+",ing:["1 cenoura","1 batata média","Água para cozinhar"],pas:["Corte em cubos e cozinhe por 15 minutos.","Amasse bem com garfo.","Ajuste a textura com água do cozimento."],d:"A cenoura é rica em betacaroteno, que se transforma em vitamina A no corpo."},
+{n:"Chuchu com Frango",e:"🥒",idade:"6m+",ing:["1/2 chuchu","1 filé de frango","1/4 de cebola"],pas:["Cozinhe tudo junto em água por 20 minutos.","Desfie o frango bem fino.","Amasse o chuchu e misture ao frango."],d:"O chuchu é leve e hidratante — ótimo para as primeiras papinhas."},
+{n:"Abobrinha com Arroz",e:"🥬",idade:"6m+",ing:["1/2 abobrinha","2 colheres de arroz cozido","1 dente de alho"],pas:["Refogue o alho no azeite e junte a abobrinha com um pouco de água.","Cozinhe por 8 minutos.","Amasse com o arroz e sirva."],d:"Não descasque a abobrinha quando o bebê já tiver mais de 8 meses — a casca tem fibras."},
+{n:"Espinafre com Batata",e:"🥬",idade:"8m+",ing:["1 punhado de espinafre","1 batata","1 fio de azeite"],pas:["Cozinhe o espinafre por 3 minutos e pique bem.","Cozinhe a batata até amaciar e amasse.","Misture tudo com um fio de azeite."],d:"O ferro do espinafre é melhor absorvido quando servido com uma fonte de vitamina C, como laranja."},
+{n:"Milho com Frango",e:"🌽",idade:"8m+",ing:["1 espiga de milho","1 filé de frango","1/2 cebola"],pas:["Cozinhe o milho e retire os grãos.","Cozinhe o frango com a cebola e desfie.","Bata o milho com um pouco de água e misture ao frango."],d:"Passe o milho pela peneira para retirar a película, que é difícil de digerir."},
+{n:"Ervilha com Batata",e:"🟢",idade:"6m+",ing:["1/2 xícara de ervilha fresca ou congelada","1 batata"],pas:["Cozinhe tudo junto por 12 minutos.","Bata no mixer e passe pela peneira.","Sirva morno."],d:"Passe a ervilha pela peneira para remover a casca e evitar gases."},
+{n:"Beterraba com Mandioquinha",e:"🟣",idade:"6m+",ing:["1/2 beterraba","2 mandioquinhas"],pas:["Cozinhe a beterraba por 25 minutos e a mandioquinha por 15.","Amasse as duas separadamente e misture.","Sirva morno."],d:"A beterraba pode deixar o xixi e as fezes mais rosados — é normal e não é motivo para preocupação."},
+{n:"Carne com Legumes",e:"🥩",idade:"6m+",ing:["80 g de carne moída","1 cenoura","1 batata","1/2 abobrinha"],pas:["Refogue a carne com cebola e um fio de azeite.","Junte os legumes picados e água até cobrir.","Cozinhe por 20 minutos e amasse tudo."],d:"A carne é a principal fonte de ferro para o bebê — ofereça todos os dias."},
+{n:"Fígado com Legumes",e:"🍖",idade:"8m+",ing:["50 g de fígado de frango","1 batata","1 cenoura"],pas:["Deixe o fígado de molho em água ou leite por 30 minutos.","Cozinhe com os legumes por 20 minutos.","Bata tudo no mixer até ficar homogêneo."],d:"Ofereça fígado no máximo 2 vezes por semana — ele é muito rico em vitamina A."},
+{n:"Peixe com Batata",e:"🐟",idade:"8m+",ing:["1 filé de tilápia sem espinhas","1 batata","1/2 cebola"],pas:["Cozinhe o peixe com a cebola e um pouco de água por 10 minutos.","Desfie o peixe e confira bem se não há espinhas.","Amasse com a batata cozida."],d:"Sempre confira as espinhas com os dedos, mesmo em filés — nunca confie só no olho."},
+{n:"Ovo Mexido com Legumes",e:"🥚",idade:"8m+",ing:["1 ovo","1/2 tomate sem pele e sem semente","1/2 abobrinha ralada"],pas:["Refogue os legumes em um fio de azeite.","Junte o ovo batido e mexa até cozinhar por completo.","Sirva morno, em pedacinhos."],d:"O ovo precisa estar completamente cozido — nada de gema mole para bebês."},
+{n:"Quinoa com Legumes",e:"🌾",idade:"8m+",ing:["2 colheres de quinoa","1 cenoura ralada","1/2 abobrinha"],pas:["Lave a quinoa e cozinhe em água por 15 minutos.","Refogue os legumes e junte a quinoa.","Amasse levemente e sirva."],d:"A quinoa é rica em proteína e ferro — uma ótima opção para variar o cardápio."},
+{n:"Lentilha com Abóbora",e:"🎃",idade:"8m+",ing:["2 colheres de lentilha","150 g de abóbora"],pas:["Deixe a lentilha de molho por 2 horas.","Cozinhe com a abóbora por 20 minutos até tudo amaciar.","Amasse bem e sirva."],d:"O molho da lentilha ajuda a reduzir os gases. Descarte a água do molho."},
+{n:"Grão-de-bico com Cenoura",e:"🫘",idade:"8m+",ing:["2 colheres de grão-de-bico cozido","1 cenoura"],pas:["Deixe o grão-de-bico de molho por 12 horas.","Cozinhe com a cenoura na pressão por 15 minutos.","Bata tudo até formar um purê."],d:"Retire a pele dos grãos esfregando-os com as mãos — fica muito mais leve para o bebê."},
+{n:"Mandioca com Carne",e:"🥔",idade:"6m+",ing:["1 mandioca média","80 g de carne moída"],pas:["Descasque a mandioca e retire o fio central.","Cozinhe até ficar bem macia e amasse.","Refogue a carne e misture ao purê."],d:"Nunca ofereça mandioca crua ou mal cozida — ela precisa estar bem macia e cozida por completo."},
+{n:"Inhame com Frango",e:"🍠",idade:"6m+",ing:["1 inhame médio","1 filé de frango"],pas:["Descasque o inhame com luva para não coçar.","Cozinhe com o frango por 20 minutos.","Amasse e desfie o frango bem fino."],d:"O inhame é um ótimo aliado da imunidade e muito fácil de digerir."},
+{n:"Couve-flor com Batata",e:"🥦",idade:"6m+",ing:["3 floretes de couve-flor","1 batata"],pas:["Cozinhe no vapor por 12 minutos.","Amasse bem com um garfo.","Sirva morno."],d:"A couve-flor pode causar gases — comece com porções pequenas."},
+{n:"Vagem com Arroz",e:"🫛",idade:"8m+",ing:["5 vagens","2 colheres de arroz cozido"],pas:["Retire os fios da vagem e corte em pedaços.","Cozinhe por 10 minutos até ficar macia.","Amasse com o arroz e sirva."],d:"Retire sempre os fios laterais da vagem — eles podem causar engasgo."},
+{n:"Tomate com Abobrinha",e:"🍅",idade:"8m+",ing:["1 tomate sem pele e sem sementes","1/2 abobrinha"],pas:["Faça um corte no tomate e escalde em água fervente para tirar a pele.","Refogue com a abobrinha por 8 minutos.","Amasse e sirva."],d:"A pele e as sementes do tomate devem ser retiradas até pelo menos 1 ano."},
+{n:"Manga com Iogurte",e:"🥭",idade:"8m+",ing:["1/2 manga madura","2 colheres de iogurte natural integral"],pas:["Amasse bem a manga.","Misture o iogurte natural.","Sirva gelado ou em temperatura ambiente."],d:"Use apenas iogurte natural integral, sem açúcar e sem adoçante."},
+{n:"Mamão com Aveia",e:"🍈",idade:"8m+",ing:["1 fatia de mamão","1 colher de aveia"],pas:["Amasse o mamão.","Misture a aveia e deixe descansar por 5 minutos.","Sirva."],d:"A aveia ajuda a dar saciedade e regula o intestino."},
+{n:"Ameixa Cozida",e:"🫐",idade:"6m+",ing:["3 ameixas sem caroço","50 ml de água"],pas:["Cozinhe as ameixas com a água por 10 minutos.","Amasse bem até virar purê.","Sirva morno."],d:"A ameixa é uma grande aliada contra a prisão de ventre."},
+{n:"Goiaba Cozida",e:"🍈",idade:"6m+",ing:["1 goiaba madura","Água para cozinhar"],pas:["Cozinhe a goiaba por 10 minutos.","Retire as sementes passando pela peneira.","Amasse a polpa e sirva."],d:"A goiaba tem mais vitamina C do que a laranja. Evite as sementes até 1 ano."},
+{n:"Melão Amassado",e:"🍈",idade:"6m+",ing:["1 fatia de melão maduro"],pas:["Retire a casca e as sementes.","Amasse bem com um garfo.","Sirva na hora."],d:"O melão é muito hidratante — ótimo para dias quentes."},
+{n:"Morango Amassado",e:"🍓",idade:"8m+",ing:["4 morangos bem maduros"],pas:["Lave bem em água corrente.","Retire o cabinho e amasse com garfo.","Se quiser, passe pela peneira para tirar as sementinhas."],d:"Morango é um dos alimentos que mais causa alergia — ofereça uma pequena quantidade na primeira vez."},
+{n:"Kiwi Amassado",e:"🥝",idade:"8m+",ing:["1 kiwi maduro"],pas:["Retire a casca.","Amasse bem a polpa.","Sirva na hora."],d:"O kiwi é ácido — evite servir se o bebê estiver com assadura ou feridinhas na boca."},
+{n:"Purê de Batata com Gema",e:"🥔",idade:"8m+",ing:["1 batata","1 gema de ovo cozida"],pas:["Cozinhe a batata e amasse.","Cozinhe o ovo por 10 minutos e retire a gema.","Misture a gema amassada ao purê."],d:"Introduza a gema separada da clara para identificar possíveis alergias."},
+{n:"Purê de Mandioca",e:"🍠",idade:"6m+",ing:["1 mandioca","1 fio de azeite"],pas:["Descasque e retire o fio central.","Cozinhe por 25 minutos até desmanchar.","Amasse com um fio de azeite."],d:"Sirva morno e com textura bem lisinha para os bebês de 6 meses."},
+{n:"Arroz Integral com Legumes",e:"🍚",idade:"8m+",ing:["3 colheres de arroz integral cozido","1 cenoura","1/2 abobrinha"],pas:["Cozinhe o arroz integral até ficar bem macio.","Refogue os legumes e junte ao arroz.","Amasse levemente e sirva."],d:"O arroz integral precisa de mais água e tempo de cozimento — deixe bem molinho."},
+{n:"Macarrão com Legumes",e:"🍝",idade:"10m+",ing:["1 punhado de macarrão tipo parafuso","1 cenoura","1/2 abobrinha"],pas:["Cozinhe o macarrão até ficar bem macio.","Refogue os legumes picados.","Misture tudo e corte em pedaços pequenos."],d:"Escolha macarrões pequenos e cozinhe além do ponto — eles ficam mais fáceis de pegar."},
+{n:"Polenta com Carne",e:"🌽",idade:"10m+",ing:["3 colheres de fubá","200 ml de água","80 g de carne moída"],pas:["Dissolva o fubá na água fria e cozinhe mexendo até engrossar.","Refogue a carne com cebola.","Sirva a polenta morna com a carne por cima."],d:"Espere a polenta esfriar um pouco antes de servir — ela retém muito calor."},
+{n:"Tapioca com Banana",e:"🫓",idade:"12m+",ing:["2 colheres de goma de tapioca","1/2 banana amassada"],pas:["Espalhe a goma na frigideira quente.","Coloque a banana amassada em cima e dobre.","Sirva em pedacinhos."],d:"Corte em tiras do tamanho de um dedo adulto para o bebê pegar sozinho."},
+{n:"Panqueca de Banana",e:"🥞",idade:"12m+",ing:["1 banana","1 ovo","2 colheres de aveia"],pas:["Amasse a banana e misture o ovo e a aveia.","Faça pequenas panquecas em frigideira antiaderente.","Doure dos dois lados e corte em tiras."],d:"Faça panquecas pequenas e finas para que cozinhem por completo."},
+{n:"Frango Desfiado com Purê",e:"🍗",idade:"8m+",ing:["1 filé de frango","2 batatas","1/2 cebola"],pas:["Cozinhe o frango com a cebola por 20 minutos.","Desfie bem fino com dois garfos.","Amasse as batatas e misture ao frango."],d:"Desfie o frango com dois garfos para ficar bem soltinho e evitar engasgo."},
+{n:"Risoto de Legumes",e:"🍚",idade:"12m+",ing:["3 colheres de arroz","1 cenoura","1/2 abobrinha","1/2 cebola","1 fio de azeite"],pas:["Refogue a cebola e os legumes no azeite.","Junte o arroz e água aos poucos, mexendo sempre.","Cozinhe por 20 minutos até ficar cremoso."],d:"Deixe o risoto bem molinho e sem temperos prontos ou caldo de carne industrializado."}
+];
+
+/* ================= DADOS: 45 SUCOS ================= */
+const SUCOS = [
+{n:"Suco de Laranja",e:"🍊",idade:"8m+",ing:["2 laranjas","50 ml de água filtrada"],pas:["Esprema as laranjas.","Coe e dilua com a água.","Sirva na hora, em copo aberto."],d:"Nunca ofereça suco na mamadeira — use copo aberto ou de transição."},
+{n:"Suco de Maçã",e:"🍎",idade:"8m+",ing:["1 maçã","100 ml de água"],pas:["Bata a maçã sem casca e sem sementes com a água.","Coe.","Sirva imediatamente."],d:"Bater a fruta inteira preserva mais fibras do que apenas espremer."},
+{n:"Suco de Pera",e:"🍐",idade:"8m+",ing:["1 pera madura","100 ml de água"],pas:["Bata a pera sem casca com a água.","Coe e sirva."],d:"Prefira sempre frutas maduras — a pera verde pode prender o intestino."},
+{n:"Suco de Mamão",e:"🍈",idade:"8m+",ing:["1 fatia de mamão","100 ml de água"],pas:["Bata o mamão com a água.","Não precisa coar, se o bebê já aceita textura.","Sirva na hora."],d:"Mamão com aveia vira uma vitamina bem mais nutritiva que o suco puro."},
+{n:"Suco de Melancia",e:"🍉",idade:"8m+",ing:["1 fatia de melancia","50 ml de água"],pas:["Retire as sementes e bata a polpa.","Coe e sirva bem gelado."],d:"A melancia é 90% água — ótima para hidratar em dias quentes."},
+{n:"Suco de Melão",e:"🍈",idade:"8m+",ing:["1 fatia de melão","50 ml de água"],pas:["Bata a polpa com a água.","Coe e sirva."],d:"Não adoce — o melão já é naturalmente doce."},
+{n:"Suco de Uva",e:"🍇",idade:"8m+",ing:["1 cacho pequeno de uva","100 ml de água"],pas:["Bata as uvas com a água.","Coe muito bem para retirar cascas e sementes.","Sirva."],d:"Nunca ofereça uva inteira ao bebê — é um dos maiores riscos de engasgo. Sirva em suco ou cortada em 4."},
+{n:"Suco de Morango",e:"🍓",idade:"8m+",ing:["5 morangos","100 ml de água"],pas:["Lave e retire os cabinhos.","Bata com a água e coe.","Sirva."],d:"Ofereça uma pequena quantidade na primeira vez para testar alergia."},
+{n:"Suco de Manga",e:"🥭",idade:"8m+",ing:["1/2 manga","100 ml de água"],pas:["Bata a polpa com a água.","Coe se necessário.","Sirva gelado."],d:"Mangas mais maduras são mais doces — nunca precisa de açúcar."},
+{n:"Suco de Abacaxi",e:"🍍",idade:"8m+",ing:["2 rodelas de abacaxi","150 ml de água"],pas:["Retire o miolo e bata com a água.","Coe bem.","Sirva."],d:"O abacaxi é ácido — evite se o bebê estiver com assadura ou afta."},
+{n:"Suco de Goiaba",e:"🍈",idade:"8m+",ing:["1 goiaba madura","150 ml de água"],pas:["Bata a goiaba com a água.","Coe bem para retirar as sementes.","Sirva."],d:"A goiaba tem mais vitamina C que a laranja — ótima para a imunidade."},
+{n:"Suco de Acerola",e:"🍒",idade:"8m+",ing:["8 acerolas","150 ml de água"],pas:["Bata as acerolas com a água.","Coe bem.","Sirva na hora."],d:"A acerola perde vitamina C rápido — sirva logo após o preparo."},
+{n:"Beterraba com Laranja",e:"🟣",idade:"8m+",ing:["1/2 beterraba crua","Suco de 2 laranjas"],pas:["Bata a beterraba com o suco de laranja.","Coe e sirva na hora."],d:"Comece com pouca beterraba — o sabor é forte e pode ser rejeitado."},
+{n:"Cenoura com Laranja",e:"🥕",idade:"8m+",ing:["1 cenoura","Suco de 2 laranjas","50 ml de água"],pas:["Bata a cenoura com a água.","Coe e misture o suco de laranja.","Sirva imediatamente."],d:"A vitamina C da laranja ajuda a absorver o ferro dos vegetais."},
+{n:"Suco Verde",e:"🥬",idade:"8m+",ing:["1 folha de couve","Suco de 2 laranjas","1 fatia de abacaxi"],pas:["Bata tudo no liquidificador.","Coe bem.","Sirva na hora."],d:"Use só uma folha de couve — mais que isso deixa o sabor amargo e forte demais."},
+{n:"Abacaxi com Hortelã",e:"🍍",idade:"8m+",ing:["2 rodelas de abacaxi","3 folhas de hortelã","150 ml de água"],pas:["Bata tudo no liquidificador.","Coe e sirva gelado."],d:"A hortelã ajuda na digestão e deixa o suco mais refrescante."},
+{n:"Melancia com Hortelã",e:"🍉",idade:"8m+",ing:["1 fatia de melancia","3 folhas de hortelã","50 ml de água"],pas:["Bata a melancia com a hortelã.","Coe e sirva bem gelado."],d:"Bata a hortelã por poucos segundos para não amargar."},
+{n:"Água de Coco com Mamão",e:"🥥",idade:"8m+",ing:["100 ml de água de coco","1 fatia de mamão"],pas:["Bata os dois no liquidificador.","Sirva na hora."],d:"Água de coco é isotônica natural — ótima depois de brincadeiras no calor."},
+{n:"Suco de Maracujá",e:"🟡",idade:"8m+",ing:["1 maracujá","150 ml de água"],pas:["Bata a polpa com a água por 5 segundos.","Coe bem.","Sirva."],d:"Bata pouco tempo para não triturar as sementes e amargar o suco."},
+{n:"Suco de Kiwi",e:"🥝",idade:"8m+",ing:["1 kiwi","150 ml de água"],pas:["Bata o kiwi sem casca com a água.","Coe e sirva."],d:"O kiwi é rico em vitamina C e fibras — ajuda no intestino."},
+{n:"Suco de Ameixa",e:"🫐",idade:"8m+",ing:["4 ameixas sem caroço","150 ml de água"],pas:["Bata as ameixas com a água.","Coe e sirva."],d:"Excelente para intestino preso. Não ofereça mais de um copinho por dia."},
+{n:"Suco de Pêssego",e:"🍑",idade:"8m+",ing:["1 pêssego maduro","150 ml de água"],pas:["Retire a casca e o caroço.","Bata com a água e coe.","Sirva."],d:"Prefira pêssegos bem maduros — os verdes são difíceis de digerir."},
+{n:"Banana com Aveia",e:"🍌",idade:"8m+",ing:["1/2 banana","1 colher de aveia","150 ml de água"],pas:["Bata tudo no liquidificador.","Sirva imediatamente."],d:"A aveia engrossa o suco — sirva logo para não virar papa."},
+{n:"Morango com Iogurte",e:"🍓",idade:"12m+",ing:["4 morangos","1/2 pote de iogurte natural integral"],pas:["Bata os morangos com o iogurte.","Sirva gelado."],d:"Use só iogurte natural integral, sem açúcar. Evite os iogurtes infantis industrializados."},
+{n:"Manga com Cenoura",e:"🥭",idade:"12m+",ing:["1/2 manga","1/2 cenoura","100 ml de água"],pas:["Bata tudo no liquidificador.","Coe e sirva."],d:"Bata bem a cenoura para não ficar com pedacinhos duros."},
+{n:"Laranja com Mamão",e:"🍊",idade:"8m+",ing:["Suco de 2 laranjas","1 fatia de mamão"],pas:["Bata o mamão com o suco de laranja.","Sirva na hora."],d:"Vitaminas C e A juntas — combinação poderosa para a imunidade."},
+{n:"Abacaxi com Gengibre",e:"🍍",idade:"12m+",ing:["2 rodelas de abacaxi","1 rodela fininha de gengibre","150 ml de água"],pas:["Bata tudo no liquidificador.","Coe.","Sirva na hora."],d:"Use pouquíssimo gengibre — ele é forte e pode irritar o estômago do bebê."},
+{n:"Maçã com Cenoura",e:"🍎",idade:"8m+",ing:["1 maçã","1/2 cenoura","150 ml de água"],pas:["Bata tudo sem casca e sem sementes.","Coe e sirva."],d:"Bata a fruta inteira para preservar as fibras — coe só se o bebê estranhar."},
+{n:"Pera com Hortelã",e:"🍐",idade:"8m+",ing:["1 pera","3 folhas de hortelã","150 ml de água"],pas:["Bata tudo no liquidificador.","Coe.","Sirva gelado."],d:"Fica ainda melhor se a pera estiver bem gelada na geladeira."},
+{n:"Uva com Maçã",e:"🍇",idade:"8m+",ing:["10 uvas sem semente","1/2 maçã","150 ml de água"],pas:["Bata tudo no liquidificador.","Coe duas vezes.","Sirva."],d:"Coe duas vezes para garantir que não sobrou nenhuma semente ou casca."},
+{n:"Melancia com Limão",e:"🍉",idade:"12m+",ing:["1 fatia de melancia","3 gotinhas de limão","50 ml de água"],pas:["Bata a melancia.","Junte as gotinhas de limão.","Sirva gelado."],d:"Use só gotinhas de limão — o ácido em excesso faz mal ao estômago do bebê."},
+{n:"Acerola com Laranja",e:"🍒",idade:"8m+",ing:["8 acerolas","Suco de 2 laranjas"],pas:["Bata as acerolas com o suco de laranja.","Coe bem.","Sirva na hora."],d:"Essa é uma das combinações com mais vitamina C que existe."},
+{n:"Goiaba com Laranja",e:"🍈",idade:"8m+",ing:["1 goiaba","Suco de 2 laranjas"],pas:["Bata a goiaba com o suco de laranja.","Coe bem.","Sirva."],d:"Coe com peneira fina para retirar todas as sementinhas duras."},
+{n:"Suco de Tangerina",e:"🍊",idade:"8m+",ing:["3 tangerinas","50 ml de água"],pas:["Esprema as tangerinas.","Coe e dilua com a água.","Sirva."],d:"O suco de tangerina é mais suave e menos ácido que a laranja — bom para variar."},
+{n:"Suco de Caju",e:"🍹",idade:"8m+",ing:["2 cajus maduros","150 ml de água"],pas:["Bata a polpa com a água.","Coe bem.","Sirva."],d:"O caju é rico em vitamina C e ferro — uma ótima fruta brasileira."},
+{n:"Suco de Graviola",e:"🍈",idade:"8m+",ing:["1/2 graviola","200 ml de água"],pas:["Retire a polpa e bata com a água.","Coe.","Sirva."],d:"A graviola é doce e cremosa — o bebê costuma aceitar bem."},
+{n:"Suco de Pitanga",e:"🍒",idade:"8m+",ing:["15 pitangas maduras","150 ml de água"],pas:["Bata as pitangas com a água.","Coe bem para retirar as sementes.","Sirva."],d:"A pitanga é ácida e aromática — comece com quantidades pequenas."},
+{n:"Suco de Cajá",e:"🍹",idade:"8m+",ing:["3 cajás maduros","200 ml de água"],pas:["Bata a polpa com a água.","Coe bem.","Sirva gelado."],d:"Frutas regionais variam o paladar do bebê e ampliam o repertório alimentar."},
+{n:"Abacaxi com Couve",e:"🍍",idade:"8m+",ing:["2 rodelas de abacaxi","1 folha de couve","150 ml de água"],pas:["Bata tudo no liquidificador.","Coe.","Sirva na hora."],d:"Sirva imediatamente — a couve oxida rápido e o sabor amarga."},
+{n:"Beterraba com Maçã",e:"🟣",idade:"8m+",ing:["1/2 beterraba","1 maçã","150 ml de água"],pas:["Bata tudo sem casca.","Coe e sirva."],d:"A maçã adoça a beterraba e deixa o suco mais aceito."},
+{n:"Pepino com Maçã",e:"🥒",idade:"12m+",ing:["1/2 pepino sem casca","1 maçã","150 ml de água"],pas:["Bata tudo no liquidificador.","Coe.","Sirva bem gelado."],d:"O pepino hidrata e é muito leve — ótimo para dias quentes."},
+{n:"Cenoura, Maçã e Laranja",e:"🥕",idade:"8m+",ing:["1/2 cenoura","1 maçã","Suco de 1 laranja"],pas:["Bata a cenoura e a maçã com um pouco de água.","Coe e misture o suco de laranja.","Sirva na hora."],d:"É uma das combinações mais nutritivas — vitaminas A, C e fibras."},
+{n:"Vitamina de Mamão com Aveia",e:"🍈",idade:"12m+",ing:["1 fatia de mamão","1 colher de aveia","100 ml de leite integral"],pas:["Bata tudo no liquidificador.","Sirva imediatamente."],d:"Leite de vaca como bebida só depois de 1 ano. Antes disso, use leite materno ou fórmula."},
+{n:"Vitamina de Banana com Mamão",e:"🍌",idade:"12m+",ing:["1/2 banana","1 fatia de mamão","100 ml de leite integral"],pas:["Bata tudo até ficar homogêneo.","Sirva na hora."],d:"Vitaminas são mais nutritivas que sucos — mantêm as fibras da fruta."},
+{n:"Morango com Melancia",e:"🍓",idade:"8m+",ing:["4 morangos","1 fatia de melancia","50 ml de água"],pas:["Bata tudo no liquidificador.","Coe e sirva gelado."],d:"Combinação refrescante e rica em vitamina C — ótima para o verão."}
+];
+
+/* ================= DADOS: 45 HISTÓRIAS ================= */
+const HISTORIAS = [
+{n:"O Gatinho que Perdeu o Mia",e:"🐱",cat:"Animais",par:"Era uma vez um gatinho chamado Mimi que acordou um dia e não conseguia mais miar. Ele tentou, tentou, mas só saía um miiii bem fraquinho. Mimi ficou triste e saiu pelo jardim procurando seu mia. Perguntou para a vaca, que respondeu muuu, perguntou para o pato, que respondeu quá quá. Nada de mia.\n\nAté que encontrou um ratinho que lhe disse: Mimi, você está com a garganta seca, beba um pouco de água. Mimi bebeu e... MIAAAU! O mia voltou, e ele ficou tão feliz que miou o dia inteiro.",moral:"Às vezes a solução para um problema é mais simples do que imaginamos."},
+{n:"A Estrelinha que Tinha Medo do Escuro",e:"⭐",cat:"Fantasia",par:"Lá no céu, uma estrelinha chamada Brilha tinha muito medo do escuro. Quando a noite chegava, ela se escondia atrás da lua. As outras estrelas diziam: Brilha, você é uma estrela, você ilumina o escuro! Mas ela não acreditava.\n\nUma noite, uma criança lá na Terra olhou para o céu e disse: Que pena, falta uma estrela hoje. Brilha ouviu aquilo e percebeu que sua luz fazia falta. Então tomou coragem, saiu de trás da lua e brilhou bem forte. A criança sorriu, e Brilha nunca mais teve medo do escuro.",moral:"Nossa luz é importante, mesmo quando temos medo."},
+{n:"O Pintinho que Queria Voar",e:"🐤",cat:"Animais",par:"Pintinho Piu olhava para o céu e via os pássaros voando. Eu também quero voar!, dizia ele. A mamãe galinha explicava: Filho, galinhas não voam. Mas Piu não desistia. Ele subia no muro, batia as asinhas e... ploft, caía no chão. Tentou de novo, e de novo.\n\nUm dia, subiu no telhado, bateu as asas e conseguiu planar até o galho de uma árvore! Todos ficaram impressionados. Ele não voava como os pássaros, mas descobriu que podia planar.",moral:"Cada um tem seu jeito de realizar sonhos."},
+{n:"A Nuvem que Chorava",e:"☁️",cat:"Natureza",par:"Uma nuvem chamada Nina estava sempre triste. Quando ficava triste, chorava, e sua chuva molhava todo mundo. As flores reclamavam, as pessoas abriam guarda-chuvas. Nina ficou ainda mais triste.\n\nAté que um dia, um menino olhou para o céu e disse: Obrigado, nuvem, sua chuva fez as plantas crescerem! Nina parou de chorar e sorriu. Ela entendeu que sua chuva não era tristeza, era vida. A partir daí, sempre que chorava, chorava de alegria, e a chuva ficava mais leve e fresquinha.",moral:"O que parece tristeza pode ser um presente."},
+{n:"O Sapinho que Não Gostava de Pular",e:"🐸",cat:"Animais",par:"O sapinho Juca preferia andar a pular. Todos os sapos pulavam, mas ele andava devagar. Juca, pule!, diziam. Não quero, respondia.\n\nUm dia, apareceu uma cobra no lago. Todos os sapos pularam para longe. Juca tentou andar, mas era lento demais. Assustado, ele deu um pulo gigante e caiu na água, a salvo! Descobriu que sabia pular muito bem. Depois disso, Juca pulava o dia inteiro, feliz da vida.",moral:"Às vezes descobrimos talentos quando mais precisamos."},
+{n:"A Formiguinha Trabalhadora",e:"🐜",cat:"Animais",par:"A formiguinha Lili era a mais trabalhadora do formigueiro. Enquanto as outras descansavam, ela carregava folhas. Lili, venha brincar!, chamavam. Não posso, preciso trabalhar, respondia.\n\nQuando o inverno chegou, todos ficaram com frio e fome. Lili tinha guardado comida suficiente para todos. As formigas agradeceram e prometeram ajudar no próximo verão. E Lili aprendeu que trabalhar é bom, mas brincar com os amigos também é importante.",moral:"Equilíbrio entre trabalho e diversão."},
+{n:"O Urso que Não Queria Dormir",e:"🐻",cat:"Animais",par:"O ursinho Bento não queria hibernar. Vou perder toda a diversão do inverno!, dizia. Ele tentava ficar acordado, mas o sono era mais forte. Uma noite, ele viu a neve cair e os animais brincando. Ficou com inveja.\n\nMas, quando tentou sair da caverna, estava tão sonolento que mal conseguia andar. Então entendeu: seu corpo precisava dormir. Bento se aconchegou, dormiu o inverno inteiro e acordou na primavera, cheio de energia para brincar com todos.",moral:"Respeitar o ritmo do corpo é sabedoria."},
+{n:"A Borboleta de Asas Coloridas",e:"🦋",cat:"Natureza",par:"A borboleta Bela tinha as asas mais coloridas do jardim. Todos admiravam sua beleza. Mas Bela era vaidosa e não ajudava ninguém. Um dia, uma ventania levou suas cores, e ela ficou cinza. As outras borboletas, mesmo sem cores bonitas, a ajudaram a se abrigar.\n\nBela chorou e percebeu que a verdadeira beleza está no coração. Quando voltou a ter cores, ela passou a ajudar todos os insetos do jardim.",moral:"A beleza verdadeira é a bondade."},
+{n:"O Peixinho Dourado",e:"🐠",cat:"Animais",par:"O peixinho Dourado vivia num aquário e sonhava em conhecer o mar. O mar é grande demais, você vai se perder, dizia o peixinho vermelho. Mas Dourado não desistia. Um dia, a família o soltou no mar.\n\nNo começo, ele ficou assustado com a imensidão. Mas logo encontrou outros peixinhos e viveu aventuras incríveis. Descobriu que o mar era enorme, mas ele era corajoso. E aprendeu que sonhos grandes valem a pena.",moral:"Coragem para seguir os sonhos."},
+{n:"A Coelhinha que Não Queria Comer Cenoura",e:"🐰",cat:"Animais",par:"A coelhinha Fofa odiava cenoura. Coelhos comem cenoura!, dizia a mamãe. Eu não!, respondia Fofa. Ela só queria comer doces. Um dia, ficou sem energia para brincar e seus dentes começaram a doer.\n\nO dentista coelho explicou que a cenoura faz bem para os dentes e para a saúde. Fofa começou a comer cenoura, primeiro com cara feia, depois até gostando. Descobriu que a cenoura era docinha e crocante.",moral:"Alimentos saudáveis nos deixam fortes."},
+{n:"O Sol que Ficou Bravo",e:"☀️",cat:"Natureza",par:"O Sol acordou de mau humor. Estava tão bravo que esquentou demais, e todos na Terra ficaram suando. As plantas murcharam, os animais se esconderam. A Lua perguntou: Sol, o que aconteceu? Ele explicou que estava bravo porque ninguém agradecia por seu calor.\n\nEntão, as crianças da Terra fizeram um desenho do Sol e disseram: Obrigado, Sol, por aquecer nossos dias! O Sol sorriu, e o dia ficou perfeito.",moral:"Gratidão aquece o coração."},
+{n:"O Caracol que Tinha Pressa",e:"🐌",cat:"Animais",par:"O caracol Tico vivia com pressa. Rápido, rápido!, dizia ele, mas seu corpo era lento. Todos riam de sua pressa. Um dia, uma tartaruga passou e disse: Tico, a vida é devagar, aproveite. Ele não entendeu.\n\nMas, quando parou para olhar, viu uma flor desabrochando, ouviu o canto dos pássaros, sentiu o cheiro da chuva. Descobriu que a pressa o fazia perder o melhor da vida. Tico aprendeu a ir devagar e ficou muito mais feliz.",moral:"A pressa esconde as belezas da vida."},
+{n:"A Abelhinha Zumbi",e:"🐝",cat:"Animais",par:"A abelhinha Zumbi fazia o som zuuum o dia inteiro. As outras abelhas reclamavam: Zumbi, você faz muito barulho! Ela ficava triste. Um dia, o jardim ficou silencioso, e as flores não eram polinizadas.\n\nAs abelhas perceberam que o zumbido de Zumbi era o som do trabalho e da vida. Zumbi, volte a zumbir!, pediram. Ela voltou, e o jardim floresceu de novo.",moral:"Cada um tem seu jeito especial de contribuir."},
+{n:"O Passarinho que Cantava Baixinho",e:"🐦",cat:"Animais",par:"O passarinho Pio cantava tão baixinho que ninguém ouvia. Cante mais alto!, diziam. Mas Pio tinha vergonha. Uma noite, um bebê não conseguia dormir. A mãe procurou todos os passarinhos, mas os cantos eram fortes demais.\n\nEntão Pio cantou baixinho, bem suave, e o bebê adormeceu. A mãe agradeceu: Seu canto é o mais bonito para ninar. Pio descobriu que seu jeito de cantar era perfeito.",moral:"Seu jeito é único e especial."},
+{n:"A Tartaruga que Corria",e:"🐢",cat:"Animais",par:"A tartaruga Tita queria correr como os outros animais. Tartarugas não correm, diziam. Mas ela treinava todo dia. Um dia, houve uma corrida na floresta. Todos riram quando viram Tita na linha de largada.\n\nMas, quando o coelho parou para descansar, Tita passou devagar, porém sem parar, e chegou primeiro. Todos ficaram de queixo caído. Tita provou que a persistência vence o talento.",moral:"Devagar e sempre, se vai longe."},
+{n:"O Elefante que Espirrava",e:"🐘",cat:"Animais",par:"O elefantinho Espirro espirrava o dia inteiro. Atchim! Atchim! As flores voavam, os amigos se assustavam. Ele ficou envergonhado e tentava segurar o espirro. Mas, um dia, um incêndio começou na floresta.\n\nEspirro, sem querer, espirrou tão forte que apagou o fogo! Todos ficaram gratos. Espirre sempre que precisar!, disseram. Ele aprendeu que até o que parece defeito pode ser um superpoder.",moral:"Aceite suas diferenças, elas podem salvar o dia."},
+{n:"A Girafa Curiosa",e:"🦒",cat:"Animais",par:"A girafa Gigi era a mais curiosa da savana. Ela queria saber o que havia além das nuvens. Esticava seu pescoço o máximo que podia. Um dia, viu um arco-íris bem de perto. Que lindo!, exclamou.\n\nDesceu correndo para contar aos amigos. Mas eles não acreditavam. Então Gigi levou todos para o alto da colina e mostrou o arco-íris. Todos ficaram maravilhados. Gigi aprendeu que a curiosidade traz descobertas incríveis.",moral:"Perguntar e explorar nos faz crescer."},
+{n:"O Macaquinho Bagunceiro",e:"🐒",cat:"Animais",par:"O macaquinho Tito era muito bagunceiro. Jogava cascas no chão, tirava as coisas do lugar. Tito, arrume!, diziam. Ele não ligava. Um dia, tropeçou numa casca que ele mesmo jogou e caiu. Machucou o joelho e ficou de cama.\n\nEnquanto isso, os outros macacos limparam a floresta. Quando Tito voltou, viu tudo limpo e organizado e percebeu que era muito melhor. Prometeu não bagunçar mais.",moral:"Organização deixa a vida mais leve."},
+{n:"A Joaninha que Queria Ser Grande",e:"🐞",cat:"Animais",par:"A joaninha Juju era pequenininha e queria ser grande como o elefante. Se eu fosse grande, todos me respeitariam, pensava. Um dia, um passarinho ficou preso numa teia. O elefante não conseguiu ajudar, era grande demais.\n\nJuju, pequenininha, entrou na teia e libertou o passarinho. Todos aplaudiram. Juju descobriu que seu tamanho era perfeito para ajudar.",moral:"Não importa o tamanho, e sim o coração."},
+{n:"O Cachorrinho Perdido",e:"🐶",cat:"Amizade",par:"O cachorrinho Bolinha se perdeu da mamãe. Andou, andou, choramingando. Encontrou uma menina que lhe deu água e comida. Bolinha ficou com ela, mas sentia falta da mamãe. A menina colocou cartazes pela cidade.\n\nUm dia, uma senhora apareceu chorando: era a mamãe de Bolinha! Ele pulou em seus braços, lambendo seu rosto. A menina ficou feliz por ter ajudado. Bolinha nunca mais se afastou de sua família.",moral:"Bondade traz alegria para todos."},
+{n:"A Lua que Queria Brincar",e:"🌙",cat:"Fantasia",par:"A Lua vivia no céu, sozinha, querendo brincar. Um dia, desceu até a Terra e encontrou uma menina. Vamos brincar?, perguntou. A menina, surpresa, aceitou. Brincaram de esconde-esconde, pega-pega.\n\nMas, quando amanheceu, a Lua precisou voltar. A menina disse: Volte amanhã! A Lua prometeu. E todas as noites, a Lua brilha mais forte para a amiga.",moral:"Amigos são tesouros que brilham no escuro."},
+{n:"O Pinguim que Tinha Calor",e:"🐧",cat:"Animais",par:"O pinguim Pingo vivia no gelo, mas sentia muito calor. Pinguins não sentem calor, diziam. Pingo suava, tirava as penas, mas nada adiantava. Um dia, descobriu que estava com febre.\n\nA mamãe pinguim cuidou dele com carinho. Quando sarou, Pingo voltou a sentir frio como todos os pinguins. Ele aprendeu que, quando algo está errado, é importante avisar.",moral:"Falar sobre o que sentimos é importante."},
+{n:"A Ovelha que Não Conseguia Dormir",e:"🐑",cat:"Animais",par:"A ovelha Lã não conseguia dormir. Contava estrelas, mas não adiantava. Vou contar ovelhas, pensou. Mas ela era a ovelha! Ficava pulando a cerca mentalmente, mas não dormia.\n\nUm dia, a vovó ovelha ensinou: Feche os olhos, respire fundo e pense em coisas boas. Lã tentou e... dormiu profundamente. Acordou descansada e feliz. Descobriu que a calma vem de dentro.",moral:"Respirar fundo acalma o coração."},
+{n:"O Cavalinho do Mar",e:"🦄",cat:"Animais",par:"O cavalinho-marinho Cava era diferente dos outros peixes. Ele tinha uma cabeça de cavalo e uma cauda enrolada. Você não é peixe nem cavalo, diziam. Cava ficava triste. Um dia, uma tempestade levou todos os peixes para longe.\n\nCava, com sua cauda enrolada, segurou as algas e salvou todos. Os peixes perceberam que ser diferente era ser especial. Cava aprendeu a amar sua forma única.",moral:"Nossas diferenças nos tornam únicos."},
+{n:"A Estrela Cadente",e:"🌠",cat:"Fantasia",par:"A estrela Cadente sonhava em realizar desejos. Todas as noites, ela via crianças pedindo desejos. Queria poder realizar todos, pensava. Um dia, uma criança pediu: Quero que minha mãe fique boa.\n\nCadente brilhou tão forte que a mãe sarou. Ela descobriu que, mesmo sendo pequena, podia fazer a diferença. Desde então, sempre que passa, realiza desejos com todo o seu brilho.",moral:"Pequenos gestos podem realizar grandes sonhos."},
+{n:"O Ratinho Corajoso",e:"🐭",cat:"Animais",par:"O ratinho Rui era o menor da família, mas o mais corajoso. Quando o gato aparecia, todos corriam. Rui, não. Ele ficava parado, olhando nos olhos do gato. O gato, confuso, ia embora.\n\nTodos admiravam Rui. Como você é corajoso?, perguntavam. Não é coragem, é só não correr, respondia. Mas Rui sabia que a verdadeira coragem é enfrentar o medo.",moral:"Coragem não é não sentir medo, é agir apesar dele."},
+{n:"A Flor que Não Queria Murchar",e:"🌻",cat:"Natureza",par:"A florzinha Margarida não queria murchar. Vou ficar bonita para sempre, dizia. Mas, um dia, começou a murchar. Ela ficou triste, achando que era o fim. Um jardineiro passou e disse: Não murchar, sementes! Ela não entendeu.\n\nQuando suas pétalas caíram, sementes voaram e novas flores nasceram. Margarida entendeu que o fim de uma flor é o começo de muitas outras.",moral:"A vida é um ciclo de renascimento."},
+{n:"O Vento Bagunceiro",e:"💨",cat:"Natureza",par:"O vento Vini adorava bagunçar. Espalhava folhas, derrubava chapéus, assustava os passarinhos. As pessoas reclamavam. Vini, pare com isso!, diziam. Um dia, um menino tentava soltar uma pipa, mas não havia vento.\n\nVini viu a tristeza do menino e soprou suavemente, fazendo a pipa voar. O menino sorriu. Vini aprendeu que pode usar sua força para o bem.",moral:"Use seu poder para ajudar, não para bagunçar."},
+{n:"O Grilo Músico",e:"🦗",cat:"Animais",par:"O grilo Grilinho tocava violino todas as noites. Sua música era linda, mas ninguém ouvia. Um dia, uma menina cega ouviu seu som e disse: Que música linda! Ela não via, mas sentia a música.\n\nGrilinho descobriu que sua música tocava corações, mesmo sem plateia. Ele continuou tocando, feliz por alegrar quem ouvia.",moral:"Sua arte pode tocar quem você nem imagina."},
+{n:"A Foca que Tinha Medo de Água",e:"🦭",cat:"Animais",par:"A foca Nina tinha medo de água, diferente das outras focas. Nina, entre no mar!, chamavam. Ela ficava na areia. Um dia, uma criança caiu na água e não sabia nadar. Nina, sem pensar, mergulhou e salvou a criança.\n\nTodos aplaudiram. Nina descobriu que, quando precisa ajudar, o medo desaparece. Desde então, ela nada com alegria.",moral:"Ajudar os outros vence nossos medos."},
+{n:"O Leão que Tinha Medo do Trovão",e:"🦁",cat:"Animais",par:"O leão Léo era forte e corajoso, mas tinha medo de trovão. Quando o céu escurecia, ele se escondia. Um leão com medo de trovão?, riam. Léo ficava envergonhado. Um dia, um filhote ficou perdido na tempestade.\n\nLéo, tremendo de medo, saiu para procurá-lo. Encontrou o filhote e o abrigou. O filhote disse: Você é corajoso, Léo! Léo descobriu que a coragem é maior que o medo.",moral:"Enfrentar o medo para ajudar é a maior coragem."},
+{n:"A Coruja que Não Dormia de Dia",e:"🦉",cat:"Animais",par:"A coruja Olívia não conseguia dormir de dia. As outras corujas dormiam, mas ela ficava acordada. Olívia, durma!, diziam. Ela ficava olhando o sol. Um dia, viu um incêndio começando na floresta e avisou todos.\n\nGraças a ela, ninguém se machucou. As corujas perceberam que o diferente de Olívia era uma bênção. Ela salvou a floresta.",moral:"Ser diferente pode salvar o dia."},
+{n:"O Porquinho que Não Gostava de Lama",e:"🐷",cat:"Animais",par:"O porquinho Pipo detestava lama. Porcos amam lama!, diziam. Pipo preferia ficar limpinho. Um dia, o sol queimou a pele de todos os porcos, menos a de Pipo, que estava na sombra, limpo. Os porcos descobriram que a lama protege do sol.\n\nPipo aprendeu que cada um tem seu jeito, e que às vezes a lama é boa. Ele passou a se divertir na lama de vez em quando.",moral:"Experimente novas coisas, podem ser boas."},
+{n:"A Zebra que Perdeu as Listras",e:"🦓",cat:"Animais",par:"A zebra Zizi acordou sem listras. Ficou desesperada! Quem sou eu sem minhas listras? Procurou por toda a savana, mas ninguém tinha visto suas listras. Um dia, percebeu que os outros animais a tratavam igual, com ou sem listras.\n\nEntão entendeu que ela era Zizi, independente das listras. As listras voltaram, mas ela não se importou mais.",moral:"Você é mais que sua aparência."},
+{n:"O Pato que Não Sabia Nadar",e:"🦆",cat:"Animais",par:"O pato Quá tinha medo de nadar. Patos nadam!, diziam. Ele ficava na margem, olhando. Um dia, um filhote caiu na água e estava se afogando. Quá, sem pensar, pulou e nadou até o filhote, salvando-o.\n\nDescobriu que sabia nadar! Ele nunca tinha tentado. Desde então, nadava todos os dias, feliz.",moral:"Às vezes sabemos fazer mais do que imaginamos."},
+{n:"A Aranha que Tinha Medo de Altura",e:"🕷️",cat:"Animais",par:"A aranha Teté tinha medo de altura. Fazia teias no chão. Aranhas fazem teias no alto!, diziam. Ela não subia. Um dia, uma chuva forte levou sua teia do chão. Teté, desesperada, subiu na árvore para fugir da água e fez uma teia linda no alto.\n\nDescobriu que a altura não era tão assustadora. As outras aranhas admiraram sua teia.",moral:"Enfrentar o medo abre novos horizontes."},
+{n:"O Tucano Colorido",e:"🦜",cat:"Animais",par:"O tucano Tuca era o mais colorido da floresta. Todos admiravam seu bico enorme. Mas Tuca era tímido e escondia o bico. Um dia, uma festa foi organizada, e todos queriam que Tuca fosse o mestre de cerimônias. Ele ficou nervoso, mas aceitou.\n\nCom seu bico colorido, animou a festa inteira. Todos aplaudiram. Tuca aprendeu que seu diferencial é sua maior força.",moral:"Mostre ao mundo o que você tem de especial."},
+{n:"A Baleia que Cantava",e:"🐋",cat:"Animais",par:"A baleia Bia cantava melodias lindas no fundo do mar. Mas ninguém ouvia, pois ela cantava baixinho. Um dia, um navio de pesquisadores passou e gravou seu canto. As pessoas na Terra ouviram e se encantaram. Bia se tornou famosa.\n\nEla descobriu que sua música podia atravessar oceanos.",moral:"Seu talento pode chegar a lugares que você nem imagina."},
+{n:"O Camaleão que Não Mudava de Cor",e:"🦎",cat:"Animais",par:"O camaleão Camô não conseguia mudar de cor. Ficava sempre verde. Camaleões mudam de cor!, diziam. Ele ficava triste. Um dia, uma cobra o perseguiu. Ele ficou parado, com tanto medo, que seu corpo reagiu e ele mudou de cor, ficando invisível na folhagem.\n\nA cobra passou direto. Camô descobriu que, quando precisava, seu corpo sabia o que fazer.",moral:"Confie em si mesmo, você é capaz."},
+{n:"A Formiga e a Cigarra",e:"🐜",cat:"Valores",par:"Era uma vez uma formiga que trabalhava o verão inteiro e uma cigarra que só cantava. Venha trabalhar!, dizia a formiga. A vida é para cantar!, respondia a cigarra. Quando o inverno chegou, a cigarra estava com fome.\n\nA formiga, que tinha guardado comida, a convidou para jantar. A cigarra agradeceu e prometeu ajudar no próximo verão. As duas se tornaram amigas.",moral:"Todos têm seu valor, e a amizade une diferenças."},
+{n:"O Sapo que Queria Ser Príncipe",e:"🐸",cat:"Fantasia",par:"O sapo Sapo sonhava em ser príncipe. Se eu fosse príncipe, teria um castelo!, dizia. Um dia, uma princesa apareceu no lago e disse: Sapo, você pode me ajudar? Perdi minha coroa. Sapo mergulhou e encontrou a coroa.\n\nA princesa agradeceu e disse: Você é um príncipe, sim, um príncipe de bondade. Sapo entendeu que ser especial não depende de castelos.",moral:"A nobreza está no coração."},
+{n:"A Galinha dos Ovos de Ouro",e:"🐔",cat:"Valores",par:"Uma galinha botava ovos de ouro todos os dias. O dono, ganancioso, queria todos os ovos de uma vez. Cortou a galinha... e não encontrou nada. Ele ficou sem os ovos e sem a galinha.\n\nMoral da história: a ganância pode nos fazer perder o que temos de precioso. Devemos valorizar o que temos, sem querer tudo de uma vez.",moral:"A ganância pode nos fazer perder o que temos de precioso."},
+{n:"O Menino e o Balão",e:"🎈",cat:"Amizade",par:"Um menino ganhou um balão vermelho. Segurava firme, com medo de perdê-lo. Um dia, o vento soprou forte, e o balão escapou. O menino chorou. Mas, olhando para cima, viu o balão voando entre as nuvens, lindo e livre.\n\nEle sorriu. Descobriu que deixar ir também é uma forma de amar.",moral:"Soltar pode ser mais bonito que segurar."},
+{n:"A Fada do Dente",e:"🧚",cat:"Fantasia",par:"A fada do dente, Fadinha, recolhia dentes de leite das crianças. Um dia, encontrou um dente que brilhava. Era de uma menina que nunca escovava os dentes. Fadinha deixou uma moeda e um bilhete: Escove os dentes para eles brilharem mais que moedas!\n\nA menina escovou, e seus dentes ficaram lindos. Ela nunca mais esqueceu.",moral:"Cuidar de si é um presente para o futuro."},
+{n:"O Gigante Bondoso",e:"🧍",cat:"Fantasia",par:"Havia um gigante que assustava todos, só pelo tamanho. Mas ele era bondoso e tímido. Um dia, uma menina ficou presa numa árvore. O gigante, com sua mão enorme, a resgatou com cuidado. Todos viram que ele era bom.\n\nA partir daí, o gigante virou amigo da vila, ajudando a construir casas e plantar flores.",moral:"Não julgue pelo tamanho, e sim pelo coração."}
+];
+
+/* ================= ESTADO ================= */
+PAPINHAS.forEach((r,i)=> r.key = "p"+i);
+SUCOS.forEach((r,i)=> r.key = "s"+i);
+HISTORIAS.forEach((r,i)=> r.key = "h"+i);
+
+let abaAtual = "papinhas";
+let busca = "";
+let filtroAtivo = "";
+const feitas = new Set(JSON.parse(localStorage.getItem("papinhasFeitas") || "[]"));
+
+/* ================= ELEMENTOS ================= */
+const grid = document.getElementById("grid");
+const chips = document.getElementById("chips");
+const overlay = document.getElementById("overlay");
+const modalConteudo = document.getElementById("modalConteudo");
+const barra = document.getElementById("barra");
+const progressoTxt = document.getElementById("progressoTxt");
+
+/* ================= ÁUDIO ================= */
+let sintese = window.speechSynthesis;
+let voz = null;
+let estaFalando = false;
+let estaPausado = false;
+let historiaAtualKey = null;
+
+function carregarVoz(){
+  if (!sintese) return;
+  const vozes = sintese.getVoices();
+  voz = vozes.find(v => v.lang === "pt-BR") || vozes.find(v => v.lang.startsWith("pt")) || null;
+}
+carregarVoz();
+if (sintese) sintese.onvoiceschanged = carregarVoz;
+
+function pararAudio(){
+  if (sintese) sintese.cancel();
+  estaFalando = false;
+  estaPausado = false;
+  atualizarBotoesAudio();
+}
+
+function ouvir(texto){
+  if (!sintese){ alert("Seu navegador não suporta áudio."); return; }
+  sintese.cancel();
+  estaFalando = true;
+  estaPausado = false;
+  atualizarBotoesAudio();
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(texto);
+    u.lang = "pt-BR";
+    u.rate = 0.9;
+    u.pitch = 1.1;
+    if (voz) u.voice = voz;
+    u.onend = () => { estaFalando = false; estaPausado = false; atualizarBotoesAudio(); };
+    u.onerror = () => { estaFalando = false; estaPausado = false; atualizarBotoesAudio(); };
+    sintese.speak(u);
+  }, 100);
+}
+
+function toggleAudio(){
+  if (!historiaAtualKey) return;
+  if (!sintese){ alert("Seu navegador não suporta áudio."); return; }
+  if (estaFalando && !estaPausado){
+    sintese.pause(); estaPausado = true;
+  } else if (estaFalando && estaPausado){
+    sintese.resume(); estaPausado = false;
+  } else {
+    const r = baseAtual().find(x => x.key === historiaAtualKey);
+    if (!r) return;
+    const texto = r.par.replace(/\n\n/g, " ") + " Moral da história: " + r.moral;
+    ouvir(texto);
+  }
+  atualizarBotoesAudio();
+}
+
+function atualizarBotoesAudio(){
+  const status = document.getElementById("audioStatus");
+  const toggle = document.querySelector('[data-audio="toggle"]');
+  if (!status || !toggle) return;
+  if (estaFalando && !estaPausado){
+    status.textContent = "🔊 Tocando história...";
+    status.className = "audio-status tocando";
+    toggle.textContent = "⏸️ Pausar";
+  } else if (estaFalando && estaPausado){
+    status.textContent = "⏸️ Pausado";
+    status.className = "audio-status pausado";
+    toggle.textContent = "▶️ Continuar";
+  } else {
+    status.textContent = "Pronto para ouvir";
+    status.className = "audio-status";
+    toggle.textContent = "▶️ Ouvir história";
+  }
+}
+
+/* ================= RENDER ================= */
+function baseAtual(){
+  if (abaAtual === "papinhas") return PAPINHAS;
+  if (abaAtual === "sucos") return SUCOS;
+  return HISTORIAS;
+}
+
+function renderChips(){
+  const base = baseAtual();
+  const campo = abaAtual === "historias" ? "cat" : "idade";
+  const valores = [...new Set(base.map(r => r[campo]))].sort((a,b)=>{
+    if (abaAtual === "historias") return a.localeCompare(b);
+    return parseInt(a) - parseInt(b);
+  });
+  chips.innerHTML =
+    `<button class="chip ${!filtroAtivo?'active':''}" data-valor="">Todas</button>` +
+    valores.map(v => `<button class="chip ${filtroAtivo===v?'active':''}" data-valor="${v}">${v}</button>`).join("");
+}
+
+function renderProgresso(){
+  const base = baseAtual();
+  const total = base.length;
+  const done = base.filter(r => feitas.has(r.key)).length;
+  barra.style.width = (done/total*100) + "%";
+  const verbo = abaAtual === "historias" ? "lidas" : "preparadas";
+  progressoTxt.textContent = `${done} de ${total} ${verbo}`;
+}
+
+function render(){
+  const q = busca.toLowerCase().trim();
+  const campo = abaAtual === "historias" ? "cat" : "idade";
+  const lista = baseAtual().filter(r => {
+    if (filtroAtivo && r[campo] !== filtroAtivo) return false;
+    if (!q) return true;
+    if (abaAtual === "historias"){
+      return (r.n + " " + r.par + " " + r.moral).toLowerCase().includes(q);
+    }
+    return (r.n + " " + r.ing.join(" ")).toLowerCase().includes(q);
+  });
+
+  if (!lista.length){
+    grid.innerHTML = `<div class="vazio">Nenhuma receita encontrada 🍽️<br>Tente outro termo ou filtro.</div>`;
+  } else {
+    grid.innerHTML = lista.map(r => `
+      <div class="card ${feitas.has(r.key)?'feita':''}" data-key="${r.key}">
+        <div class="ok">✓</div>
+        <div class="emoji">${r.e}</div>
+        <h3>${r.n}</h3>
+        <span class="idade">${r[campo]}</span>
+      </div>
+    `).join("");
+  }
+  renderChips();
+  renderProgresso();
+}
+
+/* ================= MODAL ================= */
+function abrir(key){
+  pararAudio();
+  const r = baseAtual().find(x => x.key === key);
+  if (!r) return;
+  const feita = feitas.has(r.key);
+
+  if (r.par){
+    historiaAtualKey = r.key;
+    modalConteudo.innerHTML = `
+      <div class="modal-emoji">${r.e}</div>
+      <h2>${r.n}</h2>
+      <span class="idade">${r.cat}</span>
+      <div class="historia-texto">
+        ${r.par.split("\n\n").map(p => `<p>${p}</p>`).join("")}
+      </div>
+      <div class="moral-box">
+        <strong>🌟 Moral da história</strong>
+        <p>${r.moral}</p>
+      </div>
+      <div class="audio-box">
+        <div class="audio-status" id="audioStatus">Pronto para ouvir</div>
+        <div class="audio-btns">
+          <button class="btn-audio" data-audio="toggle">▶️ Ouvir história</button>
+          <button class="btn-audio-stop" data-audio="stop">⏹️</button>
+        </div>
+      </div>
+      <button class="btn-feita ${feita?'on':''}" data-key="${r.key}">
+        ${feita ? "✓ Lida" : "Marcar como lida"}
+      </button>
+    `;
+  } else {
+    historiaAtualKey = null;
+    modalConteudo.innerHTML = `
+      <div class="modal-emoji">${r.e}</div>
+      <h2>${r.n}</h2>
+      <span class="idade">${r.idade}</span>
+      <h3>Ingredientes</h3>
+      <ul>${r.ing.map(x => `<li>${x}</li>`).join("")}</ul>
+      <h3>Modo de preparo</h3>
+      <ol>${r.pas.map(x => `<li>${x}</li>`).join("")}</ol>
+      <div class="dica">
+        <strong>💡 DICA</strong>
+        <p>${r.d}</p>
+      </div>
+      <button class="btn-feita ${feita?'on':''}" data-key="${r.key}">
+        ${feita ? "✓ Preparada" : "Marcar como preparada"}
+      </button>
+    `;
+  }
+  overlay.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function fechar(){
+  pararAudio();
+  historiaAtualKey = null;
+  overlay.classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+/* ================= EVENTOS ================= */
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    pararAudio();
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    abaAtual = btn.dataset.tab;
+    filtroAtivo = "";
+    render();
+  });
+});
+
+document.getElementById("busca").addEventListener("input", e => {
+  busca = e.target.value;
+  render();
+});
+
+chips.addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  filtroAtivo = chip.dataset.valor;
+  render();
+});
+
+grid.addEventListener("click", e => {
+  const card = e.target.closest(".card");
+  if (card) abrir(card.dataset.key);
+});
+
+modalConteudo.addEventListener("click", e => {
+  const btn = e.target.closest(".btn-feita");
+  if (btn){
+    const key = btn.dataset.key;
+    if (feitas.has(key)) feitas.delete(key);
+    else feitas.add(key);
+    localStorage.setItem("papinhasFeitas", JSON.stringify([...feitas]));
+    const ehHistoria = abaAtual === "historias";
+    if (feitas.has(key)){
+      btn.classList.add("on");
+      btn.textContent = ehHistoria ? "✓ Lida" : "✓ Preparada";
+    } else {
+      btn.classList.remove("on");
+      btn.textContent = ehHistoria ? "Marcar como lida" : "Marcar como preparada";
+    }
+    render();
+    return;
+  }
+
+  const audioBtn = e.target.closest("[data-audio]");
+  if (audioBtn){
+    if (audioBtn.dataset.audio === "toggle") toggleAudio();
+    if (audioBtn.dataset.audio === "stop") pararAudio();
+  }
+});
+
+document.getElementById("fechar").addEventListener("click", fechar);
+overlay.addEventListener("click", e => { if (e.target === overlay) fechar(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") fechar(); });
+
+/* ================= INÍCIO ================= */
+render();
+</script>
+</body>
+</html>
