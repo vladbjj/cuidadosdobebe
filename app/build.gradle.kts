@@ -24,7 +24,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Assinatura debug para gerar o AAB com sucesso no GitHub Actions
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -44,4 +43,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.webkit)
+
+    // Google Mobile Ads SDK (AdMob)
+    implementation("com.google.android.gms:play-services-ads:23.6.0")
+    // Lifecycle Process (para detectar quando o app abre)
+    implementation("androidx.lifecycle:lifecycle-process:2.8.7")
 }
