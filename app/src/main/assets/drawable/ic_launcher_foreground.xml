@@ -1,0 +1,44 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.6"
+        android:scaleY="0.6"
+        android:translateX="21.6"
+        android:translateY="21.6">
+        <!-- Tampa / Bico da Mamadeira -->
+        <path
+            android:fillColor="#FF8A5B"
+            android:pathData="M48,16 L60,16 C62.2,16 64,17.8 64,20 L64,28 L44,28 L44,20 C44,17.8 45.8,16 48,16 Z" />
+        <path
+            android:fillColor="#FFB26B"
+            android:pathData="M51,10 L57,10 C58.1,10 59,10.9 59,12 L59,16 L49,16 L49,12 C49,10.9 49.9,10 51,10 Z" />
+        <!-- Corpo da Mamadeira -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M42,32 L66,32 C69.3,32 72,34.7 72,38 L72,86 C72,90.4 68.4,94 64,94 L44,94 C39.6,94 36,90.4 36,86 L36,38 C36,34.7 38.7,32 42,32 Z" />
+        <!-- Leite / Conteúdo -->
+        <path
+            android:fillColor="#FFE8D6"
+            android:pathData="M38,58 L70,58 L70,86 C70,89.3 67.3,92 64,92 L44,92 C40.7,92 38,89.3 38,86 Z" />
+        <!-- Marcações de Medida (ml) -->
+        <path
+            android:fillColor="#FF8A5B"
+            android:pathData="M42,46 L50,46 A2,2 0 0,0 50,42 L42,42 A2,2 0 0,0 42,46 Z" />
+        <path
+            android:fillColor="#FF8A5B"
+            android:pathData="M42,56 L54,56 A2,2 0 0,0 54,52 L42,52 A2,2 0 0,0 42,56 Z" />
+        <path
+            android:fillColor="#FF8A5B"
+            android:pathData="M42,66 L50,66 A2,2 0 0,0 50,62 L42,62 A2,2 0 0,0 42,66 Z" />
+        <path
+            android:fillColor="#FF8A5B"
+            android:pathData="M42,76 L54,76 A2,2 0 0,0 54,72 L42,72 A2,2 0 0,0 42,76 Z" />
+        <!-- Coraçãozinho decorativo -->
+        <path
+            android:fillColor="#FF8A5B"
+            android:pathData="M60,68 C58,68 56.5,69.5 56.5,71.5 C56.5,74 60,77 60,77 C60,77 63.5,74 63.5,71.5 C63.5,69.5 62,68 60,68 Z" />
+    </group>
+</vector>
