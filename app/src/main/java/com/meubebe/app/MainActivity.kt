@@ -35,10 +35,8 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = WebViewClient()
         webView.webChromeClient = WebChromeClient()
 
-        // Carrega o arquivo local que está em assets
         webView.loadUrl("file:///android_asset/index.html")
 
-        // Botão voltar do Android fecha modals ou volta página
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (webView.canGoBack()) {
