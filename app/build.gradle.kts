@@ -1,5 +1,3 @@
-import java.io.File
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -21,16 +19,10 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystoreFile = file("release.keystore")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = "MinhaChave123@"
-                keyAlias = "releaseKey"
-                keyPassword = "MinhaChave123@"
-            } else {
-                // Fallback caso compile localmente sem a chave
-                signingConfig = signingConfigs.getByName("debug")
-            }
+            storeFile = file("release.keystore")
+            storePassword = "MinhaChave123@"
+            keyAlias = "releaseKey"
+            keyPassword = "MinhaChave123@"
         }
     }
 
@@ -41,7 +33,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Assinatura oficial no modo de lançamento
             signingConfig = signingConfigs.getByName("release")
         }
     }
