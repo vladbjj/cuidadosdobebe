@@ -1,4 +1,4 @@
-name: Compilar App Papinhas (AAB Oficial e APK)
+name: Compilar App Papinhas (AAB Play Store)
 
 on:
   push:
@@ -23,26 +23,19 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Criar Chave Oficial de Release (Keystore)
+      # Copia a chave padrão do runner para a pasta do app
+      - name: Preparar Chave
         run: |
-          keytool -genkey -v -keystore app/release.keystore -alias releaseKey -keyalg RSA -keysize 2048 -validity 10000 -storepass "MinhaChave123@" -keypass "MinhaChave123@" -dname "CN=CuidadosDoBebe, OU=Apps, O=Bebe, L=SP, ST=SP, C=BR"
+          mkdir -p ~/.android
+          keytool -genkeypair -alias androiddebugkey -keypass android -keystore ~/.android/debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 9999
+          cp ~/.android/debug.keystore app/release.keystore
 
-      - name: Gerar AAB Oficial (Play Store)
+      - name: Gerar AAB (Play Store)
         run: gradle bundleRelease --stacktrace
 
-      - name: Gerar APK (Para instalar no celular)
-        run: gradle assembleRelease --stacktrace
-
-      - name: Disponibilizar AAB Oficial (Play Store)
+      - name: Disponibilizar AAB (Play Store)
         uses: actions/upload-artifact@v4
         with:
-          name: papinhas-sucos-aab-playstore-oficial
+          name: papinhas-sucos-aab-playstore
           path: app/build/outputs/bundle/release/app-release.aab
-          retention-days: 14
-
-      - name: Disponibilizar APK (Celular)
-        uses: actions/upload-artifact@v4
-        with:
-          name: papinhas-sucos-apk-instalavel
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 14
