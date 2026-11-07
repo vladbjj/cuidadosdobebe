@@ -17,12 +17,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
+        signingConfigs {
         create("release") {
             storeFile = file("release.keystore")
-            storePassword = "MinhaChave123@"
-            keyAlias = "releaseKey"
-            keyPassword = "MinhaChave123@"
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
 
