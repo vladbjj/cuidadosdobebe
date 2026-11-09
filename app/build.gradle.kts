@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.cuidadosdobebe.app"
+    namespace = "com.papinhaehistoria.app"
     compileSdk = 36
 
-        defaultConfig {
-        applicationId = "com.cuidadosdobebe.app"
+    defaultConfig {
+        applicationId = "com.papinhaehistoria.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 1
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
